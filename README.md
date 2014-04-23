@@ -1,4 +1,6 @@
-jquery-ajax-nav
-====================
+# jQuery AJAX Navigation Menu Plugin
 
-jQuery AJAX Navigation Menu
+## Dependencies
+* [jQuery](http://jquery.com/)
+* [History.js](https://github.com/browserstate/history.js/)
+* [Handlebars.js](http://handlebarsjs.com/)
