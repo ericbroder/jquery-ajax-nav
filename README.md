@@ -1,4 +1,4 @@
-jquery-ajax-nav-menu
+jquery-ajax-nav
 ====================
 
 jQuery AJAX Navigation Menu
