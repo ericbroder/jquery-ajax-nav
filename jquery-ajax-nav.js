@@ -1,5 +1,18 @@
+/**
+  * jQuery AJAX Navigation Menu plugin
+  * 
+  * Set up a navigation menu to retrieve new content via AJAX without doing a 
+  * new page load.
+  */
+ 
 jQuery(function($) {
 
+  /**
+   * Initialize AJAX navigation menu.
+   *
+   * @param $contentContainer Container element for new content.
+   * @param options Array of options such as initialModel.
+   */
     $.fn.ajaxNav = function($contentContainer, options) {
         var $nav = $(this);
         var ajaxNav = new AjaxNav($nav, $contentContainer, options);
