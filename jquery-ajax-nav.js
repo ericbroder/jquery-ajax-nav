@@ -1,18 +1,18 @@
 /**
-  * jQuery AJAX Navigation Menu plugin
-  * 
-  * Set up a navigation menu to retrieve new content via AJAX without doing a 
-  * new page load.
-  */
- 
+ * jQuery AJAX Navigation Menu plugin
+ *
+ * Set up a navigation menu to retrieve new content via AJAX without doing a
+ * new page load.
+ */
+
 jQuery(function($) {
 
-  /**
-   * Initialize AJAX navigation menu.
-   *
-   * @param $contentContainer Container element for new content.
-   * @param options Array of configurable options such as initialModel.
-   */
+    /**
+     * Create AJAX navigation menu.
+     *
+     * @param $contentContainer Container element for new content.
+     * @param options Array of configurable options such as initialModel.
+     */
     $.fn.ajaxNav = function($contentContainer, options) {
         var $nav = $(this);
         var ajaxNav = new AjaxNav($nav, $contentContainer, options);
@@ -40,6 +40,20 @@ jQuery(function($) {
         this.hasInitialModel = this.settings.initialModel != null;
     }
 
+    /**
+     * Initialize AJAX navigation behavior.
+     */
+    AjaxNav.prototype.init = function() {
+        this.bindToClick();
+        this.bindToStatechange();
+        if (this.hasInitialModel) {
+            this.renderInitialPage();
+        }
+    };
+
+    /**
+     * Bind custom behavior to link clicks.
+     */
     AjaxNav.prototype.bindToClick = function() {
         this.$links.click(function(event){
             // Prevent default click action.
@@ -51,6 +65,9 @@ jQuery(function($) {
         });
     };
 
+    /**
+     * Bind custom behavior to History state changes.
+     */
     AjaxNav.prototype.bindToStatechange = function() {
 
         // Bind to StateChange Event
@@ -68,27 +85,29 @@ jQuery(function($) {
         }, this));
     };
 
+    /**
+     * Format data into HTML content.
+     */
     AjaxNav.prototype.formatData = function(data) {
         // Compile active template and return formatted data.
         var template = Handlebars.compile($("#" + this.activeTemplateId).html());
         return template(data.content);
     };
 
-    AjaxNav.prototype.init = function() {
-        this.bindToClick();
-        this.bindToStatechange();
-        if (this.hasInitialModel) {
-            this.renderInitialPage();
-        }
-    };
-
+    /**
+     * Render initial page.
+     */
     AjaxNav.prototype.renderInitialPage = function() {
         this.updateActiveData($(location).attr('pathname'));
-        this.updateContent(true);
+        var useInitialModel = true;
+        this.updateContent(useInitialModel);
         this.updateNav();
         this.updateTitle();
     };
 
+    /**
+     * Reset data related to active menu item.
+     */
     AjaxNav.prototype.resetActiveData = function() {
         this.$activeLink = null;
         this.$activeListItem = null;
@@ -98,11 +117,17 @@ jQuery(function($) {
         this.activeUrl = null;
     };
 
+    /**
+     * Trigger AJAX navigation behavior.
+     */
     AjaxNav.prototype.triggerAjaxNav = function() {
         this.updateContent();
         this.updateNav();
     };
 
+    /**
+     * Update data related to active menu item.
+     */
     AjaxNav.prototype.updateActiveData = function(url) {
         this.resetActiveData();
         var thisAjaxNav = this;
@@ -123,6 +148,9 @@ jQuery(function($) {
         }
     };
 
+    /**
+     * Update content container.
+     */
     AjaxNav.prototype.updateContent = function(useInitialModel) {
 
         useInitialModel = typeof useInitialModel !== 'undefined' ? useInitialModel : false;
@@ -156,11 +184,17 @@ jQuery(function($) {
         }
     };
 
+    /**
+     * Update which navigation menu item has active class.
+     */
     AjaxNav.prototype.updateNav = function() {
         this.$listItems.not(this.$activeListItem).removeClass('active');
         this.$activeListItem.addClass('active');
     };
 
+    /**
+     * Update title tag.
+     */
     AjaxNav.prototype.updateTitle = function() {
         document.title = this.activeTitle;
     };
