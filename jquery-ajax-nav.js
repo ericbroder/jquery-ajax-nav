@@ -11,7 +11,7 @@ jQuery(function($) {
    * Initialize AJAX navigation menu.
    *
    * @param $contentContainer Container element for new content.
-   * @param options Array of options such as initialModel.
+   * @param options Array of configurable options such as initialModel.
    */
     $.fn.ajaxNav = function($contentContainer, options) {
         var $nav = $(this);
@@ -20,21 +20,24 @@ jQuery(function($) {
         return ajaxNav;
     };
 
+    var defaults = {
+        initialModel: null
+    };
+
+    /**
+     * Construct a new AjaxNav object.
+     */
     function AjaxNav($nav, $contentContainer, options)
     {
+        // Handle arguments.
         this.$nav = $nav;
         this.$contentContainer = $contentContainer;
+        this.settings = $.extend( {}, defaults, options );
+
+        // Set other properties.
         this.$listItems = $("li", this.$nav);
         this.$links = $("a", this.$listItems);
-
-        // Set default values for optional arguments.
-        options = typeof options !== 'undefined' ? options : {};
-
-        // Check if there is an initial model set already.
-        this.hasInitialModel = typeof options.initialModel !== 'undefined';
-        if (this.hasInitialModel) {
-            this.initialModel = options.initialModel;
-        }
+        this.hasInitialModel = this.settings.initialModel != null;
     }
 
     AjaxNav.prototype.bindToClick = function() {
@@ -148,7 +151,7 @@ jQuery(function($) {
             }, this));
 
         } else {
-            this.activeContent = this.formatData(this.initialModel);
+            this.activeContent = this.formatData(this.settings.initialModel);
             this.$contentContainer.append(this.activeContent);
         }
     };
