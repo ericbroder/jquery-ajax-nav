@@ -44,17 +44,37 @@ jQuery(function($) {
      * Initialize AJAX navigation behavior.
      */
     AjaxNav.prototype.init = function() {
-        this.bindToClick();
-        this.bindToStatechange();
+        this.bindToLinkClicks();
+        this.bindToHistoryStateChanges();
         if (this.hasInitialModel) {
             this.renderInitialPage();
         }
     };
 
     /**
+     * Bind custom behavior to History state changes.
+     */
+    AjaxNav.prototype.bindToHistoryStateChanges = function() {
+
+        // Bind to StateChange Event
+        History.Adapter.bind(window,'statechange', $.proxy(function(){ // Note: We are using statechange instead of popstate
+            var State = History.getState(); // Note: We are using History.getState() instead of event.state
+
+            // If url matches one of our ajax links, then keep going. Otherwise do a normal page load.
+            this.updateActivePageData(State.url);
+            if (this.$activeLink != null) {
+                this.updateContentAndNav();
+
+            } else {
+                window.location = State.url;
+            }
+        }, this));
+    };
+
+    /**
      * Bind custom behavior to link clicks.
      */
-    AjaxNav.prototype.bindToClick = function() {
+    AjaxNav.prototype.bindToLinkClicks = function() {
         this.$links.click(function(event){
             // Prevent default click action.
             event.preventDefault();
@@ -66,29 +86,9 @@ jQuery(function($) {
     };
 
     /**
-     * Bind custom behavior to History state changes.
-     */
-    AjaxNav.prototype.bindToStatechange = function() {
-
-        // Bind to StateChange Event
-        History.Adapter.bind(window,'statechange', $.proxy(function(){ // Note: We are using statechange instead of popstate
-            var State = History.getState(); // Note: We are using History.getState() instead of event.state
-
-            // If url matches one of our ajax links, then keep going. Otherwise do a normal page load.
-            this.updateActiveData(State.url);
-            if (this.$activeLink != null) {
-                this.triggerAjaxNav();
-
-            } else {
-                window.location = State.url;
-            }
-        }, this));
-    };
-
-    /**
      * Format data into HTML content.
      */
-    AjaxNav.prototype.formatData = function(data) {
+    AjaxNav.prototype.formatDataToHtml = function(data) {
         // Compile active template and return formatted data.
         var template = Handlebars.compile($("#" + this.activeTemplateId).html());
         return template(data.content);
@@ -98,17 +98,17 @@ jQuery(function($) {
      * Render initial page.
      */
     AjaxNav.prototype.renderInitialPage = function() {
-        this.updateActiveData($(location).attr('pathname'));
+        this.updateActivePageData($(location).attr('pathname'));
         var useInitialModel = true;
-        this.updateContent(useInitialModel);
-        this.updateNav();
-        this.updateTitle();
+        this.updateContentContainer(useInitialModel);
+        this.updateActiveMenuItemUI();
+        this.updateTitleTag();
     };
 
     /**
      * Reset data related to active menu item.
      */
-    AjaxNav.prototype.resetActiveData = function() {
+    AjaxNav.prototype.resetActivePageData = function() {
         this.$activeLink = null;
         this.$activeListItem = null;
         this.activeContent = null;
@@ -118,18 +118,18 @@ jQuery(function($) {
     };
 
     /**
-     * Trigger AJAX navigation behavior.
+     * Update which navigation menu item has active class.
      */
-    AjaxNav.prototype.triggerAjaxNav = function() {
-        this.updateContent();
-        this.updateNav();
+    AjaxNav.prototype.updateActiveMenuItemUI = function() {
+        this.$listItems.not(this.$activeListItem).removeClass('active');
+        this.$activeListItem.addClass('active');
     };
 
     /**
-     * Update data related to active menu item.
+     * Update data related to active page.
      */
-    AjaxNav.prototype.updateActiveData = function(url) {
-        this.resetActiveData();
+    AjaxNav.prototype.updateActivePageData = function(url) {
+        this.resetActivePageData();
         var thisAjaxNav = this;
         this.$links.each(function() {
             var $link = $(this);
@@ -149,9 +149,17 @@ jQuery(function($) {
     };
 
     /**
+     * Update content container and nav menu.
+     */
+    AjaxNav.prototype.updateContentAndNav = function() {
+        this.updateContentContainer();
+        this.updateActiveMenuItemUI();
+    };
+
+    /**
      * Update content container.
      */
-    AjaxNav.prototype.updateContent = function(useInitialModel) {
+    AjaxNav.prototype.updateContentContainer = function(useInitialModel) {
 
         useInitialModel = typeof useInitialModel !== 'undefined' ? useInitialModel : false;
 
@@ -167,7 +175,7 @@ jQuery(function($) {
                     },
                     url: this.activeUrl
                 }).done($.proxy(function(data, textStatus, jqXHR) {
-                        this.activeContent = this.formatData(data);
+                        this.activeContent = this.formatDataToHtml(data);
                     }, this));
             }, this);
 
@@ -179,23 +187,15 @@ jQuery(function($) {
             }, this));
 
         } else {
-            this.activeContent = this.formatData(this.settings.initialModel);
+            this.activeContent = this.formatDataToHtml(this.settings.initialModel);
             this.$contentContainer.append(this.activeContent);
         }
     };
 
     /**
-     * Update which navigation menu item has active class.
-     */
-    AjaxNav.prototype.updateNav = function() {
-        this.$listItems.not(this.$activeListItem).removeClass('active');
-        this.$activeListItem.addClass('active');
-    };
-
-    /**
      * Update title tag.
      */
-    AjaxNav.prototype.updateTitle = function() {
+    AjaxNav.prototype.updateTitleTag = function() {
         document.title = this.activeTitle;
     };
 });
